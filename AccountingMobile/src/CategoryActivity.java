@@ -5,6 +5,8 @@ import com.accountingmobile.categoryendpoint.Categoryendpoint;
 import com.accountingmobile.categoryendpoint.model.Category;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.jackson.JacksonFactory;
+
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -34,18 +36,15 @@ public class CategoryActivity extends Activity {
 	 public boolean onCreateOptionsMenu(Menu menu) {
 			MenuInflater Inflater = getMenuInflater();
 			Inflater.inflate(R.menu.menu, menu);
+			MenuItem item = menu.findItem(R.id.Add);
+			item.setVisible(false);
 			return true;
 		}
 
 		@Override
 		public boolean onOptionsItemSelected(MenuItem item) {
 		
-			if (item.getItemId() == R.id.Add)
-			{
-				CategoryFormActivity.updatedCategory=null;
-				startActivity(new Intent(getBaseContext(), CategoryFormActivity.class));
-			}
-			else if (item.getItemId() == R.id.Edit) {
+			 if (item.getItemId() == R.id.Edit) {
 				
 				CategoryFormActivity.updatedCategory=currentCategory;
 				Intent CategoryFormIntent = new Intent(getBaseContext(),CategoryFormActivity.class);
@@ -60,6 +59,7 @@ public class CategoryActivity extends Activity {
 			
 			return true;
 		}
+		
 		
 		 /* AsyncTask for removing a category
 		   */

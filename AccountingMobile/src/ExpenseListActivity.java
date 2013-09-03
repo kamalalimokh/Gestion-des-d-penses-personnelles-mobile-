@@ -1,13 +1,13 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-
 import java.io.IOException;
 import java.util.List;
 
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
-import com.accountingmobile.categoryendpoint.model.Category;
-import com.accountingmobile.categoryendpoint.model.CollectionResponseCategory;
+
+import com.accountingmobile.expenseendpoint.Expenseendpoint;
+import com.accountingmobile.expenseendpoint.model.CollectionResponseExpense;
+import com.accountingmobile.expenseendpoint.model.Expense;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.jackson.JacksonFactory;
 
@@ -26,19 +26,17 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
-
-public class CategoryListActivity extends Activity {
-	
-	private List<Category> mCategoryList;
+public class ExpenseListActivity extends Activity{
+	private List<Expense> mExpenseList;
 	private EditText et;
-	CategoryAdapter adapter;
+	ExpenseAdapter adapter;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.category_list);
+		setContentView(R.layout.expense_list);
 
-	    et = (EditText)findViewById(R.id.etCategorySearch);
+	    et = (EditText)findViewById(R.id.etExpenseSearch);
 		 et.addTextChangedListener(new TextWatcher() {
 
 	            @Override
@@ -63,32 +61,30 @@ public class CategoryListActivity extends Activity {
 	        });
 		 
 		 
-		 new ListOfCategoryAsyncRetriever().execute();	
+		 new ListOfExpensesAsyncRetriever().execute();	
 		
 	}	
 	
-
-	
-	 /* AsyncTask for retrieving the list of categories 
+	 /* AsyncTask for retrieving the list of expenses 
 	   */
-	  private class ListOfCategoryAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseCategory> {
+	  private class ListOfExpensesAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseExpense> {
 
 	    @Override
-	    protected CollectionResponseCategory doInBackground(Void... params) {
+	    protected CollectionResponseExpense doInBackground(Void... params) {
 
 
-	    	Categoryendpoint.Builder endpointBuilder = new Categoryendpoint.Builder(
+	    	Expenseendpoint.Builder endpointBuilder = new Expenseendpoint.Builder(
 	          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
 	     
 	      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
 
 
-	      CollectionResponseCategory result;
+	      CollectionResponseExpense result;
 
-	      Categoryendpoint endpoint = endpointBuilder.build();
+	      Expenseendpoint endpoint = endpointBuilder.build();
 
 	      try {
-	        result = endpoint.listCategory().execute();
+	        result = endpoint.listExpense().execute();
 	      } catch (IOException e) {
 	        // TODO Auto-generated catch block
 	        e.printStackTrace();
@@ -98,24 +94,24 @@ public class CategoryListActivity extends Activity {
 	    }
 
 	    @Override
-	    protected void onPostExecute(CollectionResponseCategory result) {	      
-	    	mCategoryList=result.getItems();
+	    protected void onPostExecute(CollectionResponseExpense result) {	      
+	    	mExpenseList=result.getItems();
 	    	// Create the list
-			ListView listViewCategory = (ListView)findViewById(R.id.list_category);
-			 adapter=new CategoryAdapter(mCategoryList, getLayoutInflater());
+			ListView listViewExpense = (ListView)findViewById(R.id.list_expense);
+			 adapter=new ExpenseAdapter(mExpenseList, getLayoutInflater());
 			 
-			 listViewCategory.setAdapter(adapter);
+			 listViewExpense.setAdapter(adapter);
 			 
 			 
-			 listViewCategory.setOnItemClickListener(new OnItemClickListener() {
+			 listViewExpense.setOnItemClickListener(new OnItemClickListener() {
 
 					@Override
 					public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
-						Category selectedCategory=(Category) adapter.getItem(position);
-						CategoryActivity.currentCategory=selectedCategory;
+						Expense selectedExpense=(Expense) adapter.getItem(position);
+						ExpenseActivity.currentExpense=selectedExpense;
 						
-						Intent CategoryIntent = new Intent(getBaseContext(),CategoryActivity.class);				
-						startActivity(CategoryIntent);
+						Intent ExpenseIntent = new Intent(getBaseContext(),ExpenseActivity.class);				
+						startActivity(ExpenseIntent);
 						
 					}
 				});
@@ -142,12 +138,12 @@ public class CategoryListActivity extends Activity {
 		
 			if (item.getItemId() == R.id.Add)
 			{
-				CategoryFormActivity.updatedCategory=null;
-				startActivity(new Intent(getBaseContext(), CategoryFormActivity.class));
+				ExpenseFormActivity.updatedExpense=null;
+				startActivity(new Intent(getBaseContext(), ExpenseFormActivity.class));
 			}
 			
 			return true;
 		}
-	  
 
+	  
 }

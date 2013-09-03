@@ -43,4 +43,8 @@ public class Category {
        this.Description = Description;
    }
    
+   public String toString()
+   {
+       return( this.Name);
+   }
 }

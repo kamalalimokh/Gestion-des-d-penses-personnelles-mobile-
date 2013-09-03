@@ -46,7 +46,9 @@ public class MainActivity extends Activity {
 						Intent intent = new Intent(getBaseContext(), CategoryListActivity.class);
 						startActivity(intent);
 						break;
-					case 1 : 						
+					case 1 : 	
+						Intent intent1 = new Intent(getBaseContext(), ExpenseListActivity.class);
+						startActivity(intent1);
 						break;
 		    		case 2 :		    			
 		    			break;

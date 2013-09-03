@@ -18,8 +18,8 @@ import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-@Api(name = "categoryendpoint", namespace = @ApiNamespace(ownerDomain = "accountingmobile.com", ownerName = "accountingmobile.com", packagePath = ""))
-public class CategoryEndpoint {
+@Api(name = "expenseendpoint", namespace = @ApiNamespace(ownerDomain = "accountingmobile.com", ownerName = "accountingmobile.com", packagePath = ""))
+public class ExpenseEndpoint {
 
 	/**
 	 * This method lists all the entities inserted in datastore.
@@ -29,18 +29,18 @@ public class CategoryEndpoint {
 	 * persisted and a cursor to the next page.
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
-	@ApiMethod(name = "listCategory")
-	public CollectionResponse<Category> listCategory(
+	@ApiMethod(name = "listExpense")
+	public CollectionResponse<Expense> listExpense(
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
 		EntityManager mgr = null;
 		Cursor cursor = null;
-		List<Category> execute = null;
+		List<Expense> execute = null;
 
 		try {
 			mgr = getEntityManager();
-			Query query = mgr.createQuery("select from Category as Category");
+			Query query = mgr.createQuery("select from Expense as Expense");
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
 				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
@@ -51,20 +51,20 @@ public class CategoryEndpoint {
 				query.setMaxResults(limit);
 			}
 
-			execute = (List<Category>) query.getResultList();
+			execute = (List<Expense>) query.getResultList();
 			cursor = JPACursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
 			// Tight loop for fetching all entities from datastore and accomodate
 			// for lazy fetch.
-			for (Category obj : execute)
+			for (Expense obj : execute)
 				;
 		} finally {
 			mgr.close();
 		}
 
-		return CollectionResponse.<Category> builder().setItems(execute)
+		return CollectionResponse.<Expense> builder().setItems(execute)
 				.setNextPageToken(cursorString).build();
 	}
 
@@ -74,16 +74,16 @@ public class CategoryEndpoint {
 	 * @param id the primary key of the java bean.
 	 * @return The entity with primary key id.
 	 */
-	@ApiMethod(name = "getCategory")
-	public Category getCategory(@Named("id") Long id) {
+	@ApiMethod(name = "getExpense")
+	public Expense getExpense(@Named("id") Long id) {
 		EntityManager mgr = getEntityManager();
-		Category category = null;
+		Expense expense = null;
 		try {
-			category = mgr.find(Category.class, id);
+			expense = mgr.find(Expense.class, id);
 		} finally {
 			mgr.close();
 		}
-		return category;
+		return expense;
 	}
 
 	/**
@@ -91,24 +91,21 @@ public class CategoryEndpoint {
 	 * exists in the datastore, an exception is thrown.
 	 * It uses HTTP POST method.
 	 *
-	 * @param category the entity to be inserted.
+	 * @param expense the entity to be inserted.
 	 * @return The inserted entity.
 	 */
-	@ApiMethod(name = "insertCategory")
-	public Category insertCategory(Category category) {
+	@ApiMethod(name = "insertExpense")
+	public Expense insertExpense(Expense expense) {
 		EntityManager mgr = getEntityManager();
 		try {
-			/*
-			 * ignored by ahmad chaaban
-			 * if (containsCategory(category)) {
+			/*if (containsExpense(expense)) {
 				throw new EntityExistsException("Object already exists");
 			}*/
-
-			mgr.persist(category);
+			mgr.persist(expense);
 		} finally {
 			mgr.close();
 		}
-		return category;
+		return expense;
 	}
 
 	/**
@@ -116,29 +113,28 @@ public class CategoryEndpoint {
 	 * exist in the datastore, an exception is thrown.
 	 * It uses HTTP PUT method.
 	 *
-	 * @param category the entity to be updated.
+	 * @param expense the entity to be updated.
 	 * @return The updated entity.
 	 */
-	@ApiMethod(name = "updateCategory")
-	public Category updateCategory(Category category) {
+	@ApiMethod(name = "updateExpense")
+	public Expense updateExpense(Expense expense) {
 		EntityManager mgr = getEntityManager();
-		Category category1;
+		Expense expense1;
 		try {
-			
-			/* ignored by ahmad chaaban
-			  if (!containsCategory(category)) {
+			/*if (!containsExpense(expense)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}*/
-			/*added this code by ahmad chaaaban to get the category updated*/
-			 category1 = mgr.find(Category.class, category.getKey().getId());
-			category1.setName(category.getName());
-			category1.setDescription(category.getDescription());
-
-			mgr.persist(category1);
+			expense1 = mgr.find(Expense.class, expense.getKey().getId());
+			expense1.setName(expense.getName());
+			expense1.setPrice(expense.getPrice());
+			expense1.setExpenseDate(expense.getExpenseDate());
+			expense1.setCreatedDate(expense.getCreatedDate());
+			expense1.setCategoryId(expense.getCategoryId());
+			mgr.persist(expense1);
 		} finally {
 			mgr.close();
 		}
-		return category1;
+		return expense1;
 	}
 
 	/**
@@ -147,23 +143,22 @@ public class CategoryEndpoint {
 	 *
 	 * @param id the primary key of the entity to be deleted.
 	 */
-	@ApiMethod(name = "removeCategory")
-	public void removeCategory(@Named("id") Long id) {
+	@ApiMethod(name = "removeExpense")
+	public void removeExpense(@Named("id") Long id) {
 		EntityManager mgr = getEntityManager();
 		try {
-			Category category = mgr.find(Category.class, id);
-			mgr.remove(category);
+			Expense expense = mgr.find(Expense.class, id);
+			mgr.remove(expense);
 		} finally {
 			mgr.close();
 		}
 	}
 
-	/* ignored by ahmad chaaban not used
-	 private boolean containsCategory(Category category) {
+	/*private boolean containsExpense(Expense expense) {
 		EntityManager mgr = getEntityManager();
 		boolean contains = true;
 		try {
-			Category item = mgr.find(Category.class, category.getKey());
+			Expense item = mgr.find(Expense.class, expense.getKey());
 			if (item == null) {
 				contains = false;
 			}
@@ -172,7 +167,6 @@ public class CategoryEndpoint {
 		}
 		return contains;
 	}*/
-
 
 	private static EntityManager getEntityManager() {
 		return EMF.get().createEntityManager();
