@@ -1,6 +1,7 @@
 /*Created by ahmad chaaban*/
 package com.accountingmobile;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import android.os.Bundle;
@@ -43,14 +44,16 @@ public class MainActivity extends Activity {
 				switch (position)
 				{
 					case 0 : 						
-						Intent intent = new Intent(getBaseContext(), CategoryListActivity.class);
-						startActivity(intent);
+						Intent CategoryIntent = new Intent(getBaseContext(), CategoryListActivity.class);
+						startActivity(CategoryIntent);
 						break;
 					case 1 : 	
-						Intent intent1 = new Intent(getBaseContext(), ExpenseListActivity.class);
-						startActivity(intent1);
+						Intent ExpenseIntent = new Intent(getBaseContext(), ExpenseListActivity.class);
+						startActivity(ExpenseIntent);
 						break;
-		    		case 2 :		    			
+		    		case 2 :	
+		    			Intent IncomeIntent = new Intent(getBaseContext(), IncomeListActivity.class);
+						startActivity(IncomeIntent);
 		    			break;
 				}
 				
@@ -58,4 +61,7 @@ public class MainActivity extends Activity {
 		});
 	    
 	}
+	
+	
+
 }

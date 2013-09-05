@@ -1,15 +1,13 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 import java.io.IOException;
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
-import com.accountingmobile.categoryendpoint.model.Category;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.jackson.JacksonFactory;
-
-
+import android.os.AsyncTask;
+import com.accountingmobile.categoryendpoint.Categoryendpoint;
+import com.accountingmobile.categoryendpoint.model.Category;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,6 +30,9 @@ public class CategoryActivity extends Activity {
 		tvCategoryDesc.setText(currentCategory.getDescription());
 		
 	}
+	
+	
+		
 	
 	 public boolean onCreateOptionsMenu(Menu menu) {
 			MenuInflater Inflater = getMenuInflater();

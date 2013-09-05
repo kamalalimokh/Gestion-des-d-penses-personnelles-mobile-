@@ -38,7 +38,6 @@
     android:text="@string/ExpenseAmount"/>
 
 <EditText
-    android:text=""
     android:id="@+id/etExpenseAmount"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
