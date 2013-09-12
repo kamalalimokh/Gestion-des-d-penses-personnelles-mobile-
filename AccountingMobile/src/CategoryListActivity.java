@@ -113,7 +113,6 @@ public class CategoryListActivity extends Activity {
 					public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
 						Category selectedCategory=(Category) adapter.getItem(position);
 						CategoryActivity.currentCategory=selectedCategory;
-						
 						Intent CategoryIntent = new Intent(getBaseContext(),CategoryActivity.class);				
 						startActivity(CategoryIntent);
 						

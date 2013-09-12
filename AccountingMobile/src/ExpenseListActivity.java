@@ -109,7 +109,6 @@ public class ExpenseListActivity extends Activity{
 					public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
 						Expense selectedExpense=(Expense) adapter.getItem(position);
 						ExpenseActivity.currentExpense=selectedExpense;
-						
 						Intent ExpenseIntent = new Intent(getBaseContext(),ExpenseActivity.class);				
 						startActivity(ExpenseIntent);
 						

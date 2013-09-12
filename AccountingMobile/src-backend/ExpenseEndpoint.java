@@ -154,6 +154,59 @@ public class ExpenseEndpoint {
 		}
 	}
 
+	
+	/**
+	 * This method lists all the entities inserted in datastore by category.
+	 * It uses HTTP GET method and paging support.
+	 *
+	 * @return A CollectionResponse class containing the list of all entities
+	 * persisted and a cursor to the next page.
+	 */
+	
+	@SuppressWarnings({ "unchecked", "unused" })
+	@ApiMethod(name = "listExpenseByCategory",
+			path="listExpenseByCategory/category_id/{category_id}/")
+	public CollectionResponse<Expense> listExpenseByCategory(
+			@Named("category_id") long category_id,
+			@Nullable @Named("cursor") String cursorString,
+			@Nullable @Named("limit") Integer limit) {
+
+		EntityManager mgr = null;
+		Cursor cursor = null;
+		List<Expense> execute = null;
+
+		try {
+			mgr = getEntityManager();
+			Query query = mgr.createQuery("select from Expense as Expense WHERE Expense.category_id = "+category_id);
+			if (cursorString != null && cursorString != "") {
+				cursor = Cursor.fromWebSafeString(cursorString);
+				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
+			}
+
+			if (limit != null) {
+				query.setFirstResult(0);
+				query.setMaxResults(limit);
+			}
+
+			execute = (List<Expense>) query.getResultList();
+			cursor = JPACursorHelper.getCursor(execute);
+			if (cursor != null)
+				cursorString = cursor.toWebSafeString();
+
+			// Tight loop for fetching all entities from datastore and accomodate
+			// for lazy fetch.
+			for (Expense obj : execute)
+				;
+		} finally {
+			mgr.close();
+		}
+
+		return CollectionResponse.<Expense> builder().setItems(execute)
+				.setNextPageToken(cursorString).build();
+	}
+
+
+	
 	/*private boolean containsExpense(Expense expense) {
 		EntityManager mgr = getEntityManager();
 		boolean contains = true;

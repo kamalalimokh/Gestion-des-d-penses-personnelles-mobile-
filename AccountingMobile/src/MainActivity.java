@@ -25,7 +25,7 @@ public class MainActivity extends Activity {
 	    mainListView = (ListView) findViewById( R.id.list_home );  
 	  
 	    // Create and populate a List of activity names.  
-	    String[] array_home = new String[] { "Category", "Expense", "Income"};    
+	    String[] array_home = new String[] { "Category", "Expense", "Income","Bilan"};    
 	    ArrayList<String> homeList = new ArrayList<String>();  
 	    homeList.addAll( Arrays.asList(array_home) );  
 	      
@@ -54,6 +54,10 @@ public class MainActivity extends Activity {
 		    		case 2 :	
 		    			Intent IncomeIntent = new Intent(getBaseContext(), IncomeListActivity.class);
 						startActivity(IncomeIntent);
+		    			break;
+		    		case 3 :	
+		    			Intent BilanIntent = new Intent(getBaseContext(),BilanFilterActivty.class);
+						startActivity(BilanIntent);
 		    			break;
 				}
 				
