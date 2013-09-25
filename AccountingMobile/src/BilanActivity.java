@@ -1,3 +1,4 @@
+/*Created by Ahmad Chaaban*/
 package com.accountingmobile;
 
 import android.app.TabActivity;
@@ -6,6 +7,8 @@ import android.os.Bundle;
 import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 
+/*
+ * This activity add the tabs:expense(ExpenseTabActivity),income(IncomeTabActivity) and balance(BalanceTabActivity)*/
 public class BilanActivity extends TabActivity {
     /** Called when the activity is first created. */
 	

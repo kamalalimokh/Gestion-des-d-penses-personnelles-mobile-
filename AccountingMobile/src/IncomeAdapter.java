@@ -12,6 +12,10 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
+/*
+ * A basaAdabter to fill the income list dynamically and make a filter for this list.
+ */
+
 @SuppressLint("DefaultLocale")
 public class IncomeAdapter extends BaseAdapter implements Filterable {
 

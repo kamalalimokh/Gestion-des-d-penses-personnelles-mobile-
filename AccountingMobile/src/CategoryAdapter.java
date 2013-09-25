@@ -1,6 +1,5 @@
+/*created by ahmad chaaban*/
 package com.accountingmobile;
-
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +14,10 @@ import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
+
+/*
+ * A basaAdabter to fill the category list dynamically and make a filter for this list.
+ */
 
 @SuppressLint("DefaultLocale")
 public class CategoryAdapter extends BaseAdapter implements Filterable {

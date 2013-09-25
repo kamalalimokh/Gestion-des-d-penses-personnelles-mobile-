@@ -1,18 +1,13 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
+
 import java.util.List;
-import com.accountingmobile.incomeendpoint.Incomeendpoint;
-import com.accountingmobile.incomeendpoint.model.CollectionResponseIncome;
 import com.accountingmobile.incomeendpoint.model.Income;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
-
-
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,6 +19,11 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
+
+/*
+ * This activity is for display the list of incomes
+ */
+
 public class IncomeListActivity extends Activity{
 	private List<Income> mIncomeList;
 	private EditText et;
@@ -39,8 +39,11 @@ public class IncomeListActivity extends Activity{
 
 	            @Override
 	            public void onTextChanged(CharSequence s, int start, int before, int count) {
-	      
+	            	
+	            	if (!mIncomeList.isEmpty())
+	            	{
 	            	adapter.getFilter().filter(s);
+	            	}
 	            	
 	            }
 
@@ -57,68 +60,38 @@ public class IncomeListActivity extends Activity{
 
 	            }
 	        });
-		 
-		 
-		 new ListOfIncomesAsyncRetriever().execute();	
+		 mIncomeList=MainActivity.dbHandel.getAllIncome();
+		 if (mIncomeList.isEmpty())
+	    	{
+	    		showAlert("No Income found ,Add one!");
+	    	}
+	    	else
+	    	{    	
+	    		// Create the list
+				ListView listViewIncome = (ListView)findViewById(R.id.list_income);
+				 adapter=new IncomeAdapter(mIncomeList, getLayoutInflater());
+				 
+				 listViewIncome.setAdapter(adapter);
+				 
+				 
+				 listViewIncome.setOnItemClickListener(new OnItemClickListener() {
+
+						@Override
+						public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
+							Income selectedIncome=(Income) adapter.getItem(position);
+							IncomeActivity.currentIncome=selectedIncome;
+							
+							Intent ExpenseIntent = new Intent(getBaseContext(),IncomeActivity.class);				
+							startActivity(ExpenseIntent);
+							
+						}
+					});
+
+	    	}
+	
 		
 	}	
 	
-	 /* AsyncTask for retrieving the list of expenses 
-	   */
-	  private class ListOfIncomesAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseIncome> {
-
-	    @Override
-	    protected CollectionResponseIncome doInBackground(Void... params) {
-
-
-	    	Incomeendpoint.Builder endpointBuilder = new Incomeendpoint.Builder(
-	          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-	     
-	      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-
-	      CollectionResponseIncome result;
-
-	      Incomeendpoint endpoint = endpointBuilder.build();
-
-	      try {
-	        result = endpoint.listIncome().execute();
-	      } catch (IOException e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-	        result = null;
-	      }
-	      return result;
-	    }
-
-	    @Override
-	    protected void onPostExecute(CollectionResponseIncome result) {	      
-	    	mIncomeList=result.getItems();
-	    	// Create the list
-			ListView listViewIncome = (ListView)findViewById(R.id.list_income);
-			 adapter=new IncomeAdapter(mIncomeList, getLayoutInflater());
-			 
-			 listViewIncome.setAdapter(adapter);
-			 
-			 
-			 listViewIncome.setOnItemClickListener(new OnItemClickListener() {
-
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
-						Income selectedIncome=(Income) adapter.getItem(position);
-						IncomeActivity.currentIncome=selectedIncome;
-						
-						Intent ExpenseIntent = new Intent(getBaseContext(),IncomeActivity.class);				
-						startActivity(ExpenseIntent);
-						
-					}
-				});
-			 
-	    }
-	
-	
-}
-	  
 	  
 	  public boolean onCreateOptionsMenu(Menu menu) {
 			MenuInflater Inflater = getMenuInflater();
@@ -128,6 +101,9 @@ public class IncomeListActivity extends Activity{
 			
 			MenuItem delete = menu.findItem(R.id.Delete);
 			delete.setVisible(false);
+			
+			MenuItem sync = menu.findItem(R.id.Sync);
+			sync.setVisible(false);
 			return true;
 		}
 
@@ -142,6 +118,23 @@ public class IncomeListActivity extends Activity{
 			
 			return true;
 		}
+		
+		 public void showAlert(final String msg){
+		    	IncomeListActivity.this.runOnUiThread(new Runnable() {
+		            public void run() {
+		                AlertDialog.Builder builder = new AlertDialog.Builder(IncomeListActivity.this);
+		                builder.setTitle("Error");
+		                builder.setMessage(msg)
+		                       .setCancelable(false)
+		                       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		                           public void onClick(DialogInterface dialog, int id) {
+		                           }
+		                       });                     
+		                AlertDialog alert = builder.create();
+		                alert.show();               
+		            }
+		        });
+		    }
 
 	  
 }

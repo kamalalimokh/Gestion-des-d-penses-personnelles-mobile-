@@ -1,21 +1,21 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
+
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
+import android.widget.Toast;
 import com.accountingmobile.categoryendpoint.model.Category;
-import com.accountingmobile.incomeendpoint.Incomeendpoint;
 import com.accountingmobile.incomeendpoint.model.Income;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
+
+/*
+ * This activity display an income data when clicking on a income item from the income list.
+ */
 
 public class IncomeActivity extends Activity {
 	protected static Income currentIncome;
@@ -27,7 +27,7 @@ public class IncomeActivity extends Activity {
 	TextView tvPaymentMethod;
 	TextView tvPayer;
 	Category category;
-	String x="";
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -46,7 +46,10 @@ public class IncomeActivity extends Activity {
 		tvCreatedDate.setText(currentIncome.getCreatedDate().toString().substring(0, 10));
 		tvPaymentMethod.setText(currentIncome.getPaymentType());
 		tvPayer.setText(currentIncome.getPayer());
-		new GetCategory().execute();
+
+		tvIncomeCategory = (TextView) findViewById(R.id.tvIncomeCategory);
+		tvIncomeCategory.setText(MainActivity.dbHandel.getCategoryByKey(currentIncome.getCategoryId()).getName());
+
 		
 	}
 	
@@ -55,6 +58,9 @@ public class IncomeActivity extends Activity {
 			Inflater.inflate(R.menu.menu, menu);
 			MenuItem item = menu.findItem(R.id.Add);
 			item.setVisible(false);
+			
+			MenuItem sync = menu.findItem(R.id.Sync);
+			sync.setVisible(false);
 			return true;
 		}
 
@@ -69,7 +75,16 @@ public class IncomeActivity extends Activity {
 			}
 			else if (item.getItemId() == R.id.Delete)
 			{
-				new RemoveIncomeAsync().execute();
+				/*
+				 * If the income have the key engine then save the key engine(for the sync process) and delete it.
+				 */
+				if(!currentIncome.getIncomekey().equals("null"))
+				{
+					Globals g = Globals.getInstance();
+					g.setDelExpKey(currentIncome.getIncomekey());
+				}
+				MainActivity.dbHandel.deleteIncome(currentIncome);
+			    Toast.makeText(IncomeActivity.this,"Income Deleted!", Toast.LENGTH_SHORT).show();
 				Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
 				startActivity(MainIntent);
 			}
@@ -77,72 +92,4 @@ public class IncomeActivity extends Activity {
 			return true;
 		}
 		
-		
-		
-		
-		
-		 /* AsyncTask for removing a Expense
-		   */
-		  private class RemoveIncomeAsync extends AsyncTask<Void, Void, Void> {
-
-		    @Override
-		    protected Void doInBackground(Void... params) {
-
-
-		    	Incomeendpoint.Builder endpointBuilder = new Incomeendpoint.Builder(
-		          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-		     
-		      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-		      Incomeendpoint endpoint = endpointBuilder.build();
-
-		      try {
-		        endpoint.removeIncome(currentIncome.getKey().getId().longValue()).execute();
-				
-		      } catch (IOException e) {
-		        // TODO Auto-generated catch block
-		        e.printStackTrace();        
-		      }
-		      return null;
-		    }
-		    
-		  }
-		
-		  
-		  /* AsyncTask for get a Category by a specific id
-		   */
-		private class GetCategory extends AsyncTask<Void, Void, Category> {
-
-			   @Override
-			   protected Category doInBackground(Void... params) {
-			   
-				   Categoryendpoint.Builder builder = new Categoryendpoint.Builder(
-						         AndroidHttp.newCompatibleTransport(), new JacksonFactory(),
-						         null);
-						         
-						     builder = CloudEndpointUtils.updateBuilder(builder);
-						     Categoryendpoint endpoint = builder.build();
-						     try {
-						   	
-						    	category =endpoint.getCategory(currentIncome.getCategoryId()).execute();
-						     } catch (IOException e) {
-						       // TODO Auto-generated catch block
-						       e.printStackTrace();
-						     
-						     }
-						   
-						    
-						     return category;
-		  
-			   }
-			   
-			   protected void onPostExecute(Category category) { 
-				
-				   tvIncomeCategory = (TextView) findViewById(R.id.tvIncomeCategory);
-				   tvIncomeCategory.setText(category.getName());
-			} 
-			   
-		 }
-		
-
 }

@@ -1,27 +1,20 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
 import com.accountingmobile.categoryendpoint.model.Category;
-import com.accountingmobile.categoryendpoint.model.CollectionResponseCategory;
-import com.accountingmobile.incomeendpoint.Incomeendpoint;
 import com.accountingmobile.incomeendpoint.model.Income;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.client.util.DateTime;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -31,8 +24,14 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.View.OnClickListener;
 import android.widget.Spinner;
+
+/*
+ * This activity created for update or insert an expense.
+ */
+
 @SuppressLint("SimpleDateFormat")
 public class IncomeFormActivity extends Activity implements
 OnItemSelectedListener{
@@ -69,8 +68,7 @@ OnItemSelectedListener{
 		month = c.get(Calendar.MONTH);
 		day = c.get(Calendar.DAY_OF_MONTH);
 		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		
-		new ListOfCategoryAsyncRetriever().execute();
+		loadSpinnerData();
 		spinnerIncomeCategory.setOnItemSelectedListener(this);
 		spinner_payment.setOnItemSelectedListener(this);
 		tvIncomeDate.setOnClickListener(new OnClickListener() {
@@ -114,84 +112,63 @@ OnItemSelectedListener{
 		   @Override
 		   public void onClick(View v) {
 		 
-			   new callTasks().execute();
-			   Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
-				startActivity(MainIntent);
+			   
+			   if(etIncomeName.getText().toString().trim().equals("")||
+					   etIncomeAmount.getText().toString().trim().equals("")||
+					   etIncomePayer.getText().toString().trim().equals(""))
+							   
+			   {
+						   showAlert("Fields are required!");
+			   }
+			   else
+			   {		   
+				   
+				   if (updatedIncome!=null)
+				   {
+							 
+					   updatedIncome.setName(etIncomeName.getText().toString().trim());
+					   updatedIncome.setPayer(etIncomePayer.getText().toString().trim());
+					   updatedIncome.setPrice(Double.parseDouble(etIncomeAmount.getText().toString().trim()));
+					   try {
+						   		updatedIncome.setIncomeDate(new DateTime(dateFormat.parse(tvIncomeDate.getText().toString().trim())));
+							} catch (ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							   MainActivity.dbHandel.updateIncome(updatedIncome);
+							   Toast.makeText(IncomeFormActivity.this,"Income Updated!", Toast.LENGTH_SHORT).show();
+							   
+				   }
+				   else
+				   {			
+					   income= new Income();  	  
+					   income.setName(etIncomeName.getText().toString().trim());
+					   income.setPayer(etIncomePayer.getText().toString().trim());
+					   income.setPrice(Double.parseDouble(etIncomeAmount.getText().toString().trim()));
+					   income.setCategoryId(add_cat_id);
+					   income.setPaymentType(paymtType);
+					   try {
+						   		income.setIncomeDate(new DateTime(dateFormat.parse(tvIncomeDate.getText().toString().trim())));
+						   		income.setCreatedDate(new DateTime(dateFormat.parse(dateFormat.format(Calendar.getInstance().getTime()))));
+							} catch (ParseException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+							}
+					   MainActivity.dbHandel.addIncome(income);
+					   Toast.makeText(IncomeFormActivity.this,"Income Added!", Toast.LENGTH_SHORT).show();
+
+					}
+				   Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
+					startActivity(MainIntent);
+
 		   }
+			   
+		 }
 		  });
 		  
 	}
 	
-	/**
-	  * AsyncTask for insert or updating income *
-	  */
-	 private class callTasks extends AsyncTask<Void, Void, Void> {
-
-	   @Override
-	   protected Void doInBackground(Void... params) {
-
-		   if (updatedIncome!=null)
-		   {
-			 
-				updatedIncome.setName(etIncomeName.getText().toString().trim());
-				updatedIncome.setPayer(etIncomePayer.getText().toString().trim());
-				updatedIncome.setPrice(Double.parseDouble(etIncomeAmount.getText().toString().trim()));
-			   try {
-				   updatedIncome.setIncomeDate(new DateTime(dateFormat.parse(tvIncomeDate.getText().toString().trim())));
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		   }
-		   else
-			   {
-			  
-			   income= new Income();  
-			     
-				  
-				income.setName(etIncomeName.getText().toString().trim());
-				income.setPayer(etIncomePayer.getText().toString().trim());
-				income.setPrice(Double.parseDouble(etIncomeAmount.getText().toString().trim()));
-				income.setCategoryId(add_cat_id);
-				income.setPaymentType(paymtType);
-			   try {
-				   income.setIncomeDate(new DateTime(dateFormat.parse(tvIncomeDate.getText().toString().trim())));
-				   income.setCreatedDate(new DateTime(dateFormat.parse(dateFormat.format(Calendar.getInstance().getTime()))));
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			   }
-		   Incomeendpoint.Builder builder = new Incomeendpoint.Builder(
-				         AndroidHttp.newCompatibleTransport(), new JacksonFactory(),
-				         null);
-				         
-				     builder = CloudEndpointUtils.updateBuilder(builder);
-
-				     Incomeendpoint endpoint = builder.build();
-				     try {
-				    	 if (updatedIncome!=null)
-						   {
-				    		 endpoint.updateIncome(updatedIncome).execute();
-						   }
-				    	 else
-				    	 {
-				    		 endpoint.insertIncome(income).execute();
-				    	 }
-				       
-				     } catch (IOException e) {
-				       // TODO Auto-generated catch block
-				       e.printStackTrace();
-				       
-				     }
-				     return null;
-		   
-		 		  
-	   }
-	 }
-	 
-	 
-	 
+		 
 	 /*building the calendar*/
 	 @Override
 		protected Dialog onCreateDialog(int id) {
@@ -228,63 +205,25 @@ OnItemSelectedListener{
 		};
 		
 	
-		
-		 /* AsyncTask for retrieving the list of categories 
-		   */
-		  private class ListOfCategoryAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseCategory> {
-
-		    @Override
-		    protected CollectionResponseCategory doInBackground(Void... params) {
-
-
-		    	Categoryendpoint.Builder endpointBuilder = new Categoryendpoint.Builder(
-		          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-		     
-		      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-
-		      CollectionResponseCategory result;
-
-		      Categoryendpoint endpoint = endpointBuilder.build();
-
-		      try {
-		        result = endpoint.listCategory().execute();
-		      } catch (IOException e) {
-		        // TODO Auto-generated catch block
-		        e.printStackTrace();
-		        result = null;
-		      }
-		      return result;
-		    }
-
-		    @Override
-		    protected void onPostExecute(CollectionResponseCategory result) {	      
-		    	mCategoryList=result.getItems();
-		    	loadSpinnerData();
-				 
-		    }
-		
-		
-	}
-
-		  
+			  
 		   /**
 		     * Function to load the spinner data from the category entity
 		     * */
 		    private void loadSpinnerData() {
-		      
-		    	IncCategory[] objectArray = new IncCategory[mCategoryList.size()];
+		    	
+		    	mCategoryList= MainActivity.dbHandel.getAllCategory();
+		    	SpinnerCategory[] objectArray = new SpinnerCategory[mCategoryList.size()];
 		    	
 		    	for (int x = 0; x <mCategoryList.size(); x++) {
 		    	 
-		    		objectArray[x] = new IncCategory(mCategoryList.get(x).getKey().getId().longValue(),
-		    				 mCategoryList.get(x).getName());
+		    		objectArray[x] = new SpinnerCategory(mCategoryList.get(x).getCategoryId(),
+		    				 mCategoryList.get(x).getName(),mCategoryList.get(x).getCategorykey());
 		    	   
 		    	  
 		    	}
 		    	
 		    	// Creating adapter for spinnerIncomeCategory
-		        ArrayAdapter<IncCategory> dataAdapter = new ArrayAdapter<IncCategory>(this,
+		        ArrayAdapter<SpinnerCategory> dataAdapter = new ArrayAdapter<SpinnerCategory>(this,
 		                android.R.layout.simple_spinner_item,objectArray);
 		        
 		        // Drop down layout style - list view with radio button
@@ -315,7 +254,7 @@ OnItemSelectedListener{
 		        if (updatedIncome!=null)
 				{	
 		        	for(int i = 0; i < objectArray.length; ++i) {
-		                if(objectArray[i].id == updatedIncome.getCategoryId())
+		                if(objectArray[i].cat_key == updatedIncome.getCategoryId())
 		                		{
 		                			spinnerIncomeCategory.setSelection(i);
 		                			i=objectArray.length;
@@ -348,14 +287,14 @@ OnItemSelectedListener{
 		        Spinner spin_pay = (Spinner)arg0;
 				if(spin_cat.getId()==R.id.spinnerIncomeCategory)
 				{
-					IncCategory st = (IncCategory)spinnerIncomeCategory.getSelectedItem();
+					SpinnerCategory st = (SpinnerCategory)spinnerIncomeCategory.getSelectedItem();
 					if (updatedIncome!=null)
 					{
-						updatedIncome.setCategoryId(st.id);
+						updatedIncome.setCategoryId(st.cat_key);
 					}
 					else
 					{
-						add_cat_id=st.id;
+						add_cat_id=st.cat_key;
 					}
 				}
 				
@@ -389,7 +328,7 @@ OnItemSelectedListener{
 				{
 					if (updatedIncome==null)
 					{
-						add_cat_id=arg0.getAdapter().getItemId(0);
+						add_cat_id= arg0.getAdapter().getItemId(2);
 					}
 				}
 				if(spin_pay.getId()==R.id.spinner_payment)
@@ -402,32 +341,25 @@ OnItemSelectedListener{
 				
 			}
 		    
-		    
-		    
-		    
-		    /*Fake class to fill the spinner */
-		    public class IncCategory {
-		    	public long id = 0;
-		    	public String name = "";
-		    	
 
-		    	// A simple constructor for populating  variables 
-		    	public IncCategory( long _id, String _name)
-		    	{
-		    	    id = _id;
-		    	    name = _name;
-		    	   
-		    	}
-
-		    	// The toString method is extremely important to making this class work with a Spinner
-		    	// (or ListView) object because this is the method called when it is trying to represent
-		    	// this object within the control.  If you do not have a toString() method, you WILL
-		    	// get an exception.
-		    	public String toString()
-		    	{
-		    	    return( name  );
-		    	}
-		    	}
+		    
+			 public void showAlert(final String msg){
+			    	IncomeFormActivity.this.runOnUiThread(new Runnable() {
+			            public void run() {
+			                AlertDialog.Builder builder = new AlertDialog.Builder(IncomeFormActivity.this);
+			                builder.setTitle("Error");
+			                builder.setMessage(msg)
+			                       .setCancelable(false)
+			                       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			                           public void onClick(DialogInterface dialog, int id) {
+			                           }
+			                       });                     
+			                AlertDialog alert = builder.create();
+			                alert.show();               
+			            }
+			        });
+			    }
+		 
 		 
 
 		}

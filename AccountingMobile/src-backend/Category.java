@@ -22,6 +22,8 @@ public class Category {
    //persistence fields
    private String Name;
    private String Description;
+   transient long cat_key; // not persistent because of transient
+   transient int cat_id; // not persistent because of transient
    
    //Accessor Methods
    public Key getKey() {
@@ -41,6 +43,22 @@ public class Category {
    
    public void setDescription(String Description) {
        this.Description = Description;
+   }
+   
+   public long getCategorykey() {
+       return cat_key;
+   }
+   
+   public void setCategorykey(long cat_key) {
+       this.cat_key = cat_key;
+   }
+   
+   public int getCategoryId() {
+       return cat_id;
+   }
+   
+   public void setCategoryId(int cat_id) {
+       this.cat_id = cat_id;
    }
    
    public String toString()

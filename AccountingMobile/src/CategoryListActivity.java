@@ -1,20 +1,15 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-
-import java.io.IOException;
 import java.util.List;
-
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
 import com.accountingmobile.categoryendpoint.model.Category;
-import com.accountingmobile.categoryendpoint.model.CollectionResponseCategory;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
+
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,6 +22,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
+/*
+ * This activity is for display the list of categories
+ */
 public class CategoryListActivity extends Activity {
 	
 	private List<Category> mCategoryList;
@@ -44,7 +42,10 @@ public class CategoryListActivity extends Activity {
 	            @Override
 	            public void onTextChanged(CharSequence s, int start, int before, int count) {
 	      
+	            	if (!mCategoryList.isEmpty())
+	            	{
 	            	adapter.getFilter().filter(s);
+	            	}
 	            	
 	            }
 
@@ -63,43 +64,15 @@ public class CategoryListActivity extends Activity {
 	        });
 		 
 		 
-		 new ListOfCategoryAsyncRetriever().execute();	
-		
-	}	
-	
-
-	
-	 /* AsyncTask for retrieving the list of categories 
-	   */
-	  private class ListOfCategoryAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseCategory> {
-
-	    @Override
-	    protected CollectionResponseCategory doInBackground(Void... params) {
-
-
-	    	Categoryendpoint.Builder endpointBuilder = new Categoryendpoint.Builder(
-	          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-	     
-	      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-
-	      CollectionResponseCategory result;
-
-	      Categoryendpoint endpoint = endpointBuilder.build();
-
-	      try {
-	        result = endpoint.listCategory().execute();
-	      } catch (IOException e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-	        result = null;
-	      }
-	      return result;
-	    }
-
-	    @Override
-	    protected void onPostExecute(CollectionResponseCategory result) {	      
-	    	mCategoryList=result.getItems();
+		 
+		 mCategoryList=MainActivity.dbHandel.getAllCategory();
+		 if (mCategoryList.isEmpty())
+	    	{
+	    		showAlert("No Category found ,Add one!");
+	    	}
+	    	else
+	    	{    		
+	    		
 	    	// Create the list
 			ListView listViewCategory = (ListView)findViewById(R.id.list_category);
 			 adapter=new CategoryAdapter(mCategoryList, getLayoutInflater());
@@ -118,13 +91,12 @@ public class CategoryListActivity extends Activity {
 						
 					}
 				});
-			 
-	    }
+	    	}
+		
+	}	
 	
+
 	
-}
-	  
-	  
 	  public boolean onCreateOptionsMenu(Menu menu) {
 			MenuInflater Inflater = getMenuInflater();
 			Inflater.inflate(R.menu.menu, menu);
@@ -133,6 +105,9 @@ public class CategoryListActivity extends Activity {
 			
 			MenuItem delete = menu.findItem(R.id.Delete);
 			delete.setVisible(false);
+			
+			MenuItem sync = menu.findItem(R.id.Sync);
+			sync.setVisible(false);
 			return true;
 		}
 
@@ -147,6 +122,24 @@ public class CategoryListActivity extends Activity {
 			
 			return true;
 		}
+		
+		
+	    public void showAlert(final String msg){
+	    	CategoryListActivity.this.runOnUiThread(new Runnable() {
+	            public void run() {
+	                AlertDialog.Builder builder = new AlertDialog.Builder(CategoryListActivity.this);
+	                builder.setTitle("Error");
+	                builder.setMessage(msg)
+	                       .setCancelable(false)
+	                       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	                           public void onClick(DialogInterface dialog, int id) {
+	                           }
+	                       });                     
+	                AlertDialog alert = builder.create();
+	                alert.show();               
+	            }
+	        });
+	    }
 	  
 
 }

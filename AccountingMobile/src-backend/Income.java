@@ -25,7 +25,8 @@ public class Income {
 
 	   private long category_id;
 	   
-	  
+	   transient long inc_key; // not persistent because of transient
+	   transient int inc_id; // not persistent because of transient
 	   
 	   //Accessor Methods
 	   public Key getKey() {
@@ -83,6 +84,22 @@ public class Income {
 		  
 	   public void setCategoryId(long category_id) {  
 		   this.category_id = category_id;
+	   }
+	   
+	   public long getIncomekey() {
+	       return inc_key;
+	   }
+	   
+	   public void setIncomekey(long inc_key) {
+	       this.inc_key = inc_key;
+	   }
+	   
+	   public int getIncomeId() {
+	       return inc_id;
+	   }
+	   
+	   public void setIncomeId(int inc_id) {
+	       this.inc_id = inc_id;
 	   }
 
 }

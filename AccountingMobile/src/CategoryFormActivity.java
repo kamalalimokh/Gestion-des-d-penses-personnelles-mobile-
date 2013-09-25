@@ -1,22 +1,22 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
 
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
 import com.accountingmobile.categoryendpoint.model.Category;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
-
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.view.View.OnClickListener;
+
+/*
+ * This activity creaqted for update or insert a category.
+ */
 public class CategoryFormActivity extends Activity{
 	protected static Category updatedCategory;
 	Category category;
@@ -44,64 +44,62 @@ public class CategoryFormActivity extends Activity{
 		 
 		   @Override
 		   public void onClick(View v) {
-		 
-			   new callTasks().execute();
-			   Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
-				startActivity(MainIntent);
+			   if(etCatName.getText().toString().trim().equals("")||
+					   etCatDesc.getText().toString().trim().equals(""))
+			   {
+				   showAlert("Fields are required!");
+			   }
+			   else
+			   {
+			  
+				   if (updatedCategory!=null)
+				   {
+					   updatedCategory.setName(etCatName.getText().toString().trim());
+						
+					   updatedCategory.setDescription(etCatDesc.getText().toString().trim());
+					   MainActivity.dbHandel.updateCategory(updatedCategory);
+					   Toast.makeText(CategoryFormActivity.this,"Category Updated!", Toast.LENGTH_SHORT).show();
+					   
+				   }
+				   else
+					   {
+					   category= new Category();  
+					     
+						  
+					   category.setName(etCatName.getText().toString().trim());
+						
+					   category.setDescription(etCatDesc.getText().toString().trim());
+					   MainActivity.dbHandel.addCategory(category);
+					   Toast.makeText(CategoryFormActivity.this,"Category Added!", Toast.LENGTH_SHORT).show();
+					   
+
+					   }
+
+				   Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
+					startActivity(MainIntent);
+			  
+			   }
 		   }
 		  });
 		  
 	}
 	
-	/**
-	  * AsyncTask for insert or updating category *
-	  */
-	 private class callTasks extends AsyncTask<Void, Void, Void> {
-
-	   @Override
-	   protected Void doInBackground(Void... params) {
-
-		   if (updatedCategory!=null)
-		   {
-			   updatedCategory.setName(etCatName.getText().toString().trim());
-				
-			   updatedCategory.setDescription(etCatDesc.getText().toString().trim());
-		   }
-		   else
-			   {
-			   category= new Category();  
-			     
-				  
-			   category.setName(etCatName.getText().toString().trim());
-				
-			   category.setDescription(etCatDesc.getText().toString().trim());
-			   }
-			   Categoryendpoint.Builder builder = new Categoryendpoint.Builder(
-				         AndroidHttp.newCompatibleTransport(), new JacksonFactory(),
-				         null);
-				         
-				     builder = CloudEndpointUtils.updateBuilder(builder);
-
-				     Categoryendpoint endpoint = builder.build();
-				     try {
-				    	 if (updatedCategory!=null)
-						   {
-				    		 endpoint.updateCategory(updatedCategory).execute();
-						   }
-				    	 else
-				    	 {
-				    		 endpoint.insertCategory(category).execute();
-				    	 }
-				       
-				     } catch (IOException e) {
-				       // TODO Auto-generated catch block
-				       e.printStackTrace();
-				       Toast.makeText(CategoryFormActivity.this,"Remove Failed!", Toast.LENGTH_SHORT).show();
-				     }
-				     return null;
-		   
-		 		  
-	   }
-	 }
+	
+	 public void showAlert(final String msg){
+	    	CategoryFormActivity.this.runOnUiThread(new Runnable() {
+	            public void run() {
+	                AlertDialog.Builder builder = new AlertDialog.Builder(CategoryFormActivity.this);
+	                builder.setTitle("Error");
+	                builder.setMessage(msg)
+	                       .setCancelable(false)
+	                       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	                           public void onClick(DialogInterface dialog, int id) {
+	                           }
+	                       });                     
+	                AlertDialog alert = builder.create();
+	                alert.show();               
+	            }
+	        });
+	    }
 	
 }

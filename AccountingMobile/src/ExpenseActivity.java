@@ -1,30 +1,21 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
-
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
-
-
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
+import android.widget.Toast;
 import com.accountingmobile.categoryendpoint.model.Category;
-import com.accountingmobile.expenseendpoint.Expenseendpoint;
 import com.accountingmobile.expenseendpoint.model.Expense;
 
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
-
-
-
-
+/*
+ * This activity display an expense data when clicking on a expense item from the expense list.
+ */
 public class ExpenseActivity extends Activity {
 	protected static Expense currentExpense;
 	TextView tvExpenseName;
@@ -33,7 +24,7 @@ public class ExpenseActivity extends Activity {
 	TextView tvExpenseCategory;
 	TextView tvCreatedDate;
 	Category category;
-	String x="";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -50,7 +41,9 @@ public class ExpenseActivity extends Activity {
 		
 		tvCreatedDate.setText(currentExpense.getCreatedDate().toString().substring(0, 10));
 		
-		new GetCategory().execute();
+		tvExpenseCategory = (TextView) findViewById(R.id.tvExpenseCategory);
+		tvExpenseCategory.setText(MainActivity.dbHandel.getCategoryByKey(currentExpense.getCategoryId()).getName());
+		
 		
 	}
 	
@@ -59,6 +52,9 @@ public class ExpenseActivity extends Activity {
 			Inflater.inflate(R.menu.menu, menu);
 			MenuItem item = menu.findItem(R.id.Add);
 			item.setVisible(false);
+			
+			MenuItem sync = menu.findItem(R.id.Sync);
+			sync.setVisible(false);
 			return true;
 		}
 
@@ -73,83 +69,22 @@ public class ExpenseActivity extends Activity {
 			}
 			else if (item.getItemId() == R.id.Delete)
 			{
-				new RemoveExpenseAsync().execute();
+				/*
+				 * If the expense have the key engine then save the key engine(for the sync process) and delete it.
+				 */
+				if(!currentExpense.getExpensekey().equals("null"))
+				{
+					Globals g = Globals.getInstance();
+					g.setDelExpKey(currentExpense.getExpensekey());
+				}
+				MainActivity.dbHandel.deleteExpense(currentExpense);
+				  Toast.makeText(ExpenseActivity.this,"Expense Deleted!", Toast.LENGTH_SHORT).show();
 				Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
 				startActivity(MainIntent);
 			}
 			
 			return true;
 		}
-		
-		
-		
-		
-		
-		 /* AsyncTask for removing a Expense
-		   */
-		  private class RemoveExpenseAsync extends AsyncTask<Void, Void, Void> {
-
-		    @Override
-		    protected Void doInBackground(Void... params) {
-
-
-		    	Expenseendpoint.Builder endpointBuilder = new Expenseendpoint.Builder(
-		          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-		     
-		      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-		      Expenseendpoint endpoint = endpointBuilder.build();
-
-		      try {
-		        endpoint.removeExpense(currentExpense.getKey().getId().longValue()).execute();
-				
-		      } catch (IOException e) {
-		        // TODO Auto-generated catch block
-		        e.printStackTrace();        
-		      }
-		      return null;
-		    }
-		    
-		  }
-		
-		  
-		  /* AsyncTask for get a Category by a specific id
-		   */
-		private class GetCategory extends AsyncTask<Void, Void, Category> {
-
-			   @Override
-			   protected Category doInBackground(Void... params) {
-			   
-				   Categoryendpoint.Builder builder = new Categoryendpoint.Builder(
-						         AndroidHttp.newCompatibleTransport(), new JacksonFactory(),
-						         null);
-						         
-						     builder = CloudEndpointUtils.updateBuilder(builder);
-						     Categoryendpoint endpoint = builder.build();
-						     try {
-						   	
-						    	category =endpoint.getCategory(currentExpense.getCategoryId()).execute();
-						     } catch (IOException e) {
-						       // TODO Auto-generated catch block
-						       e.printStackTrace();
-						     
-						     }
-						   
-						    
-						     return category;
-		  
-			   }
-			   
-			   protected void onPostExecute(Category category) { 
-				
-				tvExpenseCategory = (TextView) findViewById(R.id.tvExpenseCategory);
-				tvExpenseCategory.setText(category.getName());
-			} 
-			   
-		 }
-		
-		
-		
 		
 
 }

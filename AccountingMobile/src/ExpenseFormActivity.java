@@ -1,27 +1,20 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-
-import com.accountingmobile.categoryendpoint.Categoryendpoint;
 import com.accountingmobile.categoryendpoint.model.Category;
-import com.accountingmobile.categoryendpoint.model.CollectionResponseCategory;
-import com.accountingmobile.expenseendpoint.Expenseendpoint;
 import com.accountingmobile.expenseendpoint.model.Expense;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.client.util.DateTime;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -31,8 +24,13 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.View.OnClickListener;
 import android.widget.Spinner;
+
+/*
+ * This activity created for update or insert an expense.
+ */
 @SuppressLint("SimpleDateFormat")
 public class ExpenseFormActivity extends Activity implements
 OnItemSelectedListener{
@@ -64,8 +62,7 @@ OnItemSelectedListener{
 		month = c.get(Calendar.MONTH);
 		day = c.get(Calendar.DAY_OF_MONTH);
 		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		
-		new ListOfCategoryAsyncRetriever().execute();
+		loadSpinnerData();
 		spinner.setOnItemSelectedListener(this);
 		tvExpenseDate.setOnClickListener(new OnClickListener() {
 			 
@@ -104,80 +101,57 @@ OnItemSelectedListener{
 		   @Override
 		   public void onClick(View v) {
 		 
-			   new callTasks().execute();
-			   Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
-				startActivity(MainIntent);
-		   }
+			   if(etExpenseName.getText().toString().trim().equals("")||
+				  etExpenseAmount.getText().toString().trim().equals(""))
+					   
+			   {
+				   showAlert("Fields are required!");
+			   }
+			   else
+				  
+				   if (updatedExpense!=null)
+				   {
+					   updatedExpense.setName(etExpenseName.getText().toString().trim());
+						
+					   updatedExpense.setPrice(Double.parseDouble(etExpenseAmount.getText().toString().trim()));
+					   try {
+						updatedExpense.setExpenseDate(new DateTime(dateFormat.parse(tvExpenseDate.getText().toString().trim())));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					   MainActivity.dbHandel.updateExpense(updatedExpense);
+					   Toast.makeText(ExpenseFormActivity.this,"Expense Updated!", Toast.LENGTH_SHORT).show();
+
+				   }
+				   else
+				   {
+					   expense= new Expense();  	  
+					   expense.setName(etExpenseName.getText().toString().trim());
+					   expense.setPrice(Double.parseDouble(etExpenseAmount.getText().toString().trim()));
+					   expense.setCategoryId(add_cat_id);
+					   try {
+						   expense.setExpenseDate(new DateTime(dateFormat.parse(tvExpenseDate.getText().toString().trim())));
+						   expense.setCreatedDate(new DateTime(dateFormat.parse(dateFormat.format(Calendar.getInstance().getTime()))));
+						} catch (ParseException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					   MainActivity.dbHandel.addExpense(expense);
+					   Toast.makeText(ExpenseFormActivity.this,"Expense Added!", Toast.LENGTH_SHORT).show();
+
+				   }
+			   
+			   		Intent MainIntent = new Intent(getBaseContext(),MainActivity.class);
+			   		startActivity(MainIntent);
+			   }
+			  
+			   
+		   
 		  });
 		  
 	}
 	
-	/**
-	  * AsyncTask for insert or updating expense *
-	  */
-	 private class callTasks extends AsyncTask<Void, Void, Void> {
-
-	   @Override
-	   protected Void doInBackground(Void... params) {
-
-		   if (updatedExpense!=null)
-		   {
-			   updatedExpense.setName(etExpenseName.getText().toString().trim());
-				
-			   updatedExpense.setPrice(Double.parseDouble(etExpenseAmount.getText().toString().trim()));
-			   try {
-				updatedExpense.setExpenseDate(new DateTime(dateFormat.parse(tvExpenseDate.getText().toString().trim())));
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		   }
-		   else
-			   {
-			   expense= new Expense();  
-			     
-				  
-			   expense.setName(etExpenseName.getText().toString().trim());
-				
-			   expense.setPrice(Double.parseDouble(etExpenseAmount.getText().toString().trim()));
-			   expense.setCategoryId(add_cat_id);
-			   try {
-				   expense.setExpenseDate(new DateTime(dateFormat.parse(tvExpenseDate.getText().toString().trim())));
-				   expense.setCreatedDate(new DateTime(dateFormat.parse(dateFormat.format(Calendar.getInstance().getTime()))));
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			   }
-		   Expenseendpoint.Builder builder = new Expenseendpoint.Builder(
-				         AndroidHttp.newCompatibleTransport(), new JacksonFactory(),
-				         null);
-				         
-				     builder = CloudEndpointUtils.updateBuilder(builder);
-
-				     Expenseendpoint endpoint = builder.build();
-				     try {
-				    	 if (updatedExpense!=null)
-						   {
-				    		 endpoint.updateExpense(updatedExpense).execute();
-						   }
-				    	 else
-				    	 {
-				    		 endpoint.insertExpense(expense).execute();
-				    	 }
-				       
-				     } catch (IOException e) {
-				       // TODO Auto-generated catch block
-				       e.printStackTrace();
-				       
-				     }
-				     return null;
-		   
-		 		  
-	   }
-	 }
-	 
-	 
 	 
 	 /*building the calendar*/
 	 @Override
@@ -214,64 +188,25 @@ OnItemSelectedListener{
 			}
 		};
 		
-	
-		
-		 /* AsyncTask for retrieving the list of categories 
-		   */
-		  private class ListOfCategoryAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseCategory> {
-
-		    @Override
-		    protected CollectionResponseCategory doInBackground(Void... params) {
-
-
-		    	Categoryendpoint.Builder endpointBuilder = new Categoryendpoint.Builder(
-		          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-		     
-		      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-
-		      CollectionResponseCategory result;
-
-		      Categoryendpoint endpoint = endpointBuilder.build();
-
-		      try {
-		        result = endpoint.listCategory().execute();
-		      } catch (IOException e) {
-		        // TODO Auto-generated catch block
-		        e.printStackTrace();
-		        result = null;
-		      }
-		      return result;
-		    }
-
-		    @Override
-		    protected void onPostExecute(CollectionResponseCategory result) {	      
-		    	mCategoryList=result.getItems();
-		    	loadSpinnerData();
-				 
-		    }
-		
-		
-	}
-
 		  
 		   /**
 		     * Function to load the spinner data from the category entity
 		     * */
 		    private void loadSpinnerData() {
 		      
-		    	ExpCategory[] objectArray = new ExpCategory[mCategoryList.size()];
+		    	mCategoryList= MainActivity.dbHandel.getAllCategory();
+		    	SpinnerCategory[] objectArray = new SpinnerCategory[mCategoryList.size()];
 		    	
 		    	for (int x = 0; x <mCategoryList.size(); x++) {
 		    	 
-		    		objectArray[x] = new ExpCategory(mCategoryList.get(x).getKey().getId().longValue(),
-		    				 mCategoryList.get(x).getName());
+		    		objectArray[x] = new SpinnerCategory(mCategoryList.get(x).getCategoryId(),
+		    				 mCategoryList.get(x).getName(),mCategoryList.get(x).getCategorykey());
 		    	   
 		    	  
 		    	}
 		    	
 		    	// Creating adapter for spinner
-		        ArrayAdapter<ExpCategory> dataAdapter = new ArrayAdapter<ExpCategory>(this,
+		        ArrayAdapter<SpinnerCategory> dataAdapter = new ArrayAdapter<SpinnerCategory>(this,
 		                android.R.layout.simple_spinner_item,objectArray);
 		        
 		        // Drop down layout style - list view with radio button
@@ -283,7 +218,7 @@ OnItemSelectedListener{
 		        if (updatedExpense!=null)
 				{	
 		        	for(int i = 0; i < objectArray.length; ++i) {
-		                if(objectArray[i].id == updatedExpense.getCategoryId())
+		                if(objectArray[i].cat_key == updatedExpense.getCategoryId())
 		                		{
 		                			spinner.setSelection(i);
 		                			i=objectArray.length;
@@ -301,14 +236,14 @@ OnItemSelectedListener{
 			public void onItemSelected(AdapterView<?> arg0, View arg1,
 					int arg2, long arg3) {
 				// TODO Auto-generated method stub
-				ExpCategory st = (ExpCategory)spinner.getSelectedItem();
+				SpinnerCategory st = (SpinnerCategory)spinner.getSelectedItem();
 				if (updatedExpense!=null)
 				{
-					updatedExpense.setCategoryId(st.id);
+					updatedExpense.setCategoryId(st.cat_key);
 				}
 				else
 				{
-					add_cat_id=st.id;
+					add_cat_id=st.cat_key;
 				}
 				
 			}
@@ -324,36 +259,30 @@ OnItemSelectedListener{
 				
 				if (updatedExpense==null)
 				{
-					add_cat_id=arg0.getAdapter().getItemId(0);
+					add_cat_id= (Long) arg0.getAdapter().getItem(2);
 				}
 			}
 		    
 		    
 		    
 		    
-		    /*Fake class to fill the spinner */
-		    public class ExpCategory {
-		    	public long id = 0;
-		    	public String name = "";
-		    	
-
-		    	// A simple constructor for populating  variables 
-		    	public ExpCategory( long _id, String _name)
-		    	{
-		    	    id = _id;
-		    	    name = _name;
-		    	   
-		    	}
-
-		    	// The toString method is extremely important to making this class work with a Spinner
-		    	// (or ListView) object because this is the method called when it is trying to represent
-		    	// this object within the control.  If you do not have a toString() method, you WILL
-		    	// get an exception.
-		    	public String toString()
-		    	{
-		    	    return( name  );
-		    	}
-		    	}
+		  		    
+			 public void showAlert(final String msg){
+			    	ExpenseFormActivity.this.runOnUiThread(new Runnable() {
+			            public void run() {
+			                AlertDialog.Builder builder = new AlertDialog.Builder(ExpenseFormActivity.this);
+			                builder.setTitle("Error");
+			                builder.setMessage(msg)
+			                       .setCancelable(false)
+			                       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			                           public void onClick(DialogInterface dialog, int id) {
+			                           }
+			                       });                     
+			                AlertDialog alert = builder.create();
+			                alert.show();               
+			            }
+			        });
+			    }
 		 
 
 		}

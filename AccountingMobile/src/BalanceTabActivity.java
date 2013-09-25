@@ -1,9 +1,13 @@
+/*Created by Ahmad Chaaban*/
 package com.accountingmobile;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+/*
+ * This activity display the total expense,total income and the balance
+ */
 public class BalanceTabActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

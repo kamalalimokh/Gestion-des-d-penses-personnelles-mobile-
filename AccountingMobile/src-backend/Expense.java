@@ -32,6 +32,9 @@ public class Expense {
 
    private long category_id;
    
+   transient long exp_key; // not persistent because of transient
+   transient int exp_id; // not persistent because of transient
+   
   
    
    //Accessor Methods
@@ -77,5 +80,22 @@ public class Expense {
    public void setCategoryId(long category_id) {  
 	   this.category_id = category_id;
    }
+   
+   public long getExpensekey() {
+       return exp_key;
+   }
+   
+   public void setExpensekey(long exp_key) {
+       this.exp_key = exp_key;
+   }
+   
+   public int getExpenseId() {
+       return exp_id;
+   }
+   
+   public void setExpenseId(int exp_id) {
+       this.exp_id = exp_id;
+   }
+   
 
 }

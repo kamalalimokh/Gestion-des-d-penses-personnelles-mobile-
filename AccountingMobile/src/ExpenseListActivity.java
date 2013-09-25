@@ -1,20 +1,12 @@
 /*created by ahmad chaaban*/
 package com.accountingmobile;
 
-import java.io.IOException;
 import java.util.List;
-
-
-import com.accountingmobile.expenseendpoint.Expenseendpoint;
-import com.accountingmobile.expenseendpoint.model.CollectionResponseExpense;
 import com.accountingmobile.expenseendpoint.model.Expense;
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.json.jackson.JacksonFactory;
-
-
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,6 +18,10 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
+
+/*
+ * This activity is for display the list of expenses
+ */
 public class ExpenseListActivity extends Activity{
 	private List<Expense> mExpenseList;
 	private EditText et;
@@ -42,7 +38,10 @@ public class ExpenseListActivity extends Activity{
 	            @Override
 	            public void onTextChanged(CharSequence s, int start, int before, int count) {
 	      
+	            	if (!mExpenseList.isEmpty())
+	            	{
 	            	adapter.getFilter().filter(s);
+	            	}
 	            	
 	            }
 
@@ -60,66 +59,37 @@ public class ExpenseListActivity extends Activity{
 	            }
 	        });
 		 
-		 
-		 new ListOfExpensesAsyncRetriever().execute();	
+		 mExpenseList=MainActivity.dbHandel.getAllExpense();
+		 if (mExpenseList.isEmpty())
+	    	{
+	    		showAlert("No Expense found ,Add one!");
+	    	}
+	    	else
+	    	{    	
+	    		// Create the list
+				ListView listViewExpense = (ListView)findViewById(R.id.list_expense);
+				 adapter=new ExpenseAdapter(mExpenseList, getLayoutInflater());
+				 
+				 listViewExpense.setAdapter(adapter);
+				 
+				 
+				 listViewExpense.setOnItemClickListener(new OnItemClickListener() {
+
+						@Override
+						public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
+							Expense selectedExpense=(Expense) adapter.getItem(position);
+							ExpenseActivity.currentExpense=selectedExpense;
+							Intent ExpenseIntent = new Intent(getBaseContext(),ExpenseActivity.class);				
+							startActivity(ExpenseIntent);
+							
+						}
+					});
+
+	    	}
 		
 	}	
 	
-	 /* AsyncTask for retrieving the list of expenses 
-	   */
-	  private class ListOfExpensesAsyncRetriever extends AsyncTask<Void, Void, CollectionResponseExpense> {
-
-	    @Override
-	    protected CollectionResponseExpense doInBackground(Void... params) {
-
-
-	    	Expenseendpoint.Builder endpointBuilder = new Expenseendpoint.Builder(
-	          AndroidHttp.newCompatibleTransport(), new JacksonFactory(), null);
-	     
-	      endpointBuilder = CloudEndpointUtils.updateBuilder(endpointBuilder);
-
-
-	      CollectionResponseExpense result;
-
-	      Expenseendpoint endpoint = endpointBuilder.build();
-
-	      try {
-	        result = endpoint.listExpense().execute();
-	      } catch (IOException e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-	        result = null;
-	      }
-	      return result;
-	    }
-
-	    @Override
-	    protected void onPostExecute(CollectionResponseExpense result) {	      
-	    	mExpenseList=result.getItems();
-	    	// Create the list
-			ListView listViewExpense = (ListView)findViewById(R.id.list_expense);
-			 adapter=new ExpenseAdapter(mExpenseList, getLayoutInflater());
-			 
-			 listViewExpense.setAdapter(adapter);
-			 
-			 
-			 listViewExpense.setOnItemClickListener(new OnItemClickListener() {
-
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
-						Expense selectedExpense=(Expense) adapter.getItem(position);
-						ExpenseActivity.currentExpense=selectedExpense;
-						Intent ExpenseIntent = new Intent(getBaseContext(),ExpenseActivity.class);				
-						startActivity(ExpenseIntent);
-						
-					}
-				});
-			 
-	    }
-	
-	
-}
-	  
+	 
 	  
 	  public boolean onCreateOptionsMenu(Menu menu) {
 			MenuInflater Inflater = getMenuInflater();
@@ -129,6 +99,9 @@ public class ExpenseListActivity extends Activity{
 			
 			MenuItem delete = menu.findItem(R.id.Delete);
 			delete.setVisible(false);
+			
+			MenuItem sync = menu.findItem(R.id.Sync);
+			sync.setVisible(false);
 			return true;
 		}
 
@@ -143,6 +116,23 @@ public class ExpenseListActivity extends Activity{
 			
 			return true;
 		}
+		
+		 public void showAlert(final String msg){
+		    	ExpenseListActivity.this.runOnUiThread(new Runnable() {
+		            public void run() {
+		                AlertDialog.Builder builder = new AlertDialog.Builder(ExpenseListActivity.this);
+		                builder.setTitle("Error");
+		                builder.setMessage(msg)
+		                       .setCancelable(false)
+		                       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		                           public void onClick(DialogInterface dialog, int id) {
+		                           }
+		                       });                     
+		                AlertDialog alert = builder.create();
+		                alert.show();               
+		            }
+		        });
+		    }
 
 	  
 }
